@@ -1,5 +1,5 @@
 // src/mock/pagination-mock.ts
-import { PaginateType } from '../types/common-types';
+import { PaginateType } from './common-types';
 
 interface PaginationMock<T> extends PaginateType {
     docs: T[];
