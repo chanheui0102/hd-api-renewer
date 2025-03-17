@@ -11,6 +11,8 @@
     "license": "ISC",
     "description": "",
     "dependencies": {
+        "@google-analytics/data": "^4.12.1",
+        "@google-cloud/translate": "^8.5.1",
         "aws-sdk": "^2.1348.0",
         "bcrypt": "^5.1.0",
         "cache-manager": "^5.2.1",
