@@ -1,25 +1,72 @@
 // src/services/article.service.ts
 import mongoose from 'mongoose';
 import { WebzineModel } from '../models/webzine.model';
-// import { FileService } from '../services/file.service';
-// import { ViewService } from '../services/view.service';
-// import { MongodbPipelineService } from '../services/mongodb-pipeline.service';
-// import { RedisService } from '../services/redis.service';
+import { FileService } from '../services/file.service';
+import { ViewService } from '../services/view.service';
 import { v4 as uuidv4 } from 'uuid';
 import moment from 'moment';
 import { PipelineStage } from 'mongoose';
 
 export class ArticleService {
-    // private fileService: FileService;
-    // private viewService: ViewService;
-    // private mongodbPipelineService: MongodbPipelineService;
-    // private redisService: RedisService;
+    private fileService: FileService;
+    private viewService: ViewService;
+    private AWS_S3_CDN: string;
 
     constructor() {
-        // this.fileService = new FileService();
-        // this.viewService = new ViewService();
-        // this.mongodbPipelineService = new MongodbPipelineService();
-        // this.redisService = new RedisService();
+        this.fileService = new FileService();
+        this.viewService = new ViewService();
+        this.AWS_S3_CDN = process.env.AWS_S3_CDN || '';
+    }
+
+    private getArticleProjection() {
+        return {
+            $map: {
+                input: '$articles',
+                as: 'article',
+                in: {
+                    _id: '$$article._id',
+                    webzineId: '$$article.webzineId',
+                    category: '$$article.category',
+                    title: '$$article.title',
+                    content: '$$article.content',
+                    createdAt: '$$article.createdAt',
+                    updatedAt: '$$article.updatedAt',
+                    beginPage: '$$article.beginPage',
+                    endPage: '$$article.endPage',
+                    thumbnail: {
+                        normal: {
+                            $concat: [
+                                this.AWS_S3_CDN,
+                                '/',
+                                '$publishedDate',
+                                '/thumbnail/',
+                                '$$article.category',
+                                '/',
+                                '$$article.thumbnail.normal',
+                            ],
+                        },
+                        wide: {
+                            $concat: [
+                                this.AWS_S3_CDN,
+                                '/',
+                                '$publishedDate',
+                                '/thumbnail/',
+                                '$$article.category',
+                                '/',
+                                '$$article.thumbnail.wide',
+                            ],
+                        },
+                    },
+                    viewCount: { $size: '$$article.views' },
+                    recommendCount: { $size: '$$article.recommends' },
+                    commentCount: { $size: '$$article.comments' },
+                    recommended: false,
+                    views: '$$article.views',
+                    recommends: '$$article.recommends',
+                    comments: '$$article.comments',
+                },
+            },
+        };
     }
 
     public async upload(
@@ -39,7 +86,13 @@ export class ArticleService {
             file.originalname = `${uuidv4()}.${file.originalname
                 .split('.')
                 .pop()}`;
-            // await this.fileService.uploadArticle(publishedDate, 'thumbnail', dto.category, file.originalname, file.buffer);
+            await this.fileService.uploadArticle(
+                publishedDate,
+                'thumbnail',
+                dto.category,
+                file.originalname,
+                file.buffer
+            );
         }
 
         const now = moment().toDate();
@@ -69,9 +122,8 @@ export class ArticleService {
     }
 
     public async findById(ip: string, id: string) {
-        // this.viewService.view(id, ip); // 조회수 증가 등
-        // pipeline
-        const pipeline = [
+        await this.viewService.view(ip, id);
+        const pipeline: PipelineStage[] = [
             {
                 $project: {
                     articles: {
@@ -86,23 +138,25 @@ export class ArticleService {
                             },
                         },
                     },
+                    publishedDate: 1,
                 },
             },
             {
-                $unwind: '$articles',
+                $project: {
+                    articles: this.getArticleProjection(),
+                },
             },
-            {
-                $replaceRoot: { newRoot: '$articles' },
-            },
+            { $unwind: '$articles' },
+            { $replaceRoot: { newRoot: '$articles' } },
         ];
+
         const docs = await WebzineModel.aggregate(pipeline);
         if (!docs.length) throw new Error('Article not found');
         return docs[0];
     }
 
     public findByTitle(title?: string) {
-        // pipeline에서 articles.title.en or .es 에 regex match
-        const pipeline = [
+        const pipeline: PipelineStage[] = [
             {
                 $match: {
                     $or: [
@@ -128,44 +182,58 @@ export class ArticleService {
                             input: '$articles',
                             as: 'sub',
                             cond: {
-                                $or: [
+                                $and: [
                                     {
-                                        $regexMatch: {
-                                            input: '$$sub.title.en',
-                                            regex: title || '',
-                                            options: 'i',
-                                        },
+                                        $or: [
+                                            {
+                                                $regexMatch: {
+                                                    input: '$$sub.title.en',
+                                                    regex: title || '',
+                                                    options: 'i',
+                                                },
+                                            },
+                                            {
+                                                $regexMatch: {
+                                                    input: '$$sub.title.es',
+                                                    regex: title || '',
+                                                    options: 'i',
+                                                },
+                                            },
+                                        ],
                                     },
-                                    {
-                                        $regexMatch: {
-                                            input: '$$sub.title.es',
-                                            regex: title || '',
-                                            options: 'i',
-                                        },
-                                    },
+                                    { $ne: ['$$sub.category', 'Header'] },
                                 ],
                             },
                         },
                     },
+                    publishedDate: 1,
+                },
+            },
+            {
+                $project: {
+                    articles: this.getArticleProjection(),
                 },
             },
             { $unwind: '$articles' },
             { $replaceRoot: { newRoot: '$articles' } },
         ];
+
         return WebzineModel.aggregate(pipeline);
     }
 
     public findByWebzine(webzineId: string) {
-        const pipeline = [
+        const pipeline: PipelineStage[] = [
             { $match: { _id: new mongoose.Types.ObjectId(webzineId) } },
             {
                 $project: {
-                    articles: 1,
+                    articles: this.getArticleProjection(),
+                    publishedDate: 1,
                 },
             },
             { $unwind: '$articles' },
             { $replaceRoot: { newRoot: '$articles' } },
         ];
+
         return WebzineModel.aggregate(pipeline);
     }
 
@@ -195,9 +263,15 @@ export class ArticleService {
                 },
             },
             { $sort: { createdAt: -1 } },
+            {
+                $project: {
+                    articles: this.getArticleProjection(),
+                },
+            },
             { $unwind: '$articles' },
             { $replaceRoot: { newRoot: '$articles' } },
         ];
+
         return WebzineModel.aggregate(pipeline);
     }
 
