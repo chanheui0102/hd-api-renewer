@@ -3,19 +3,28 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: './.env' });
 
-const MONGO_URI = process.env.MONGODB_URI;
-
-const connectDB = async () => {
+export default async function connectDB() {
     try {
-        if (!MONGO_URI) {
-            throw new Error('MONGO_URI environment variable is not defined');
-        }
-        await mongoose.connect(MONGO_URI);
-        console.log('MongoDB connected successfully');
+        const uri = process.env.MONGODB_URI;
+        console.log('Connecting to MongoDB...', uri);
+
+        mongoose.set('debug', true); // 쿼리 디버깅 활성화
+
+        await mongoose.connect(uri!);
+
+        // 연결 후 현재 데이터베이스 정보 출력
+        const db = mongoose.connection;
+        console.log('Connected to database:', db.name);
+        console.log('Collections:', await db.db.listCollections().toArray());
+        console.log('Current database name:', db.name);
+        console.log(
+            'Expected database name:',
+            new URL(process.env.MONGODB_URI!).pathname.substring(1)
+        );
+
+        return mongoose.connection;
     } catch (error) {
         console.error('MongoDB connection error:', error);
         process.exit(1);
     }
-};
-
-export default connectDB;
+}

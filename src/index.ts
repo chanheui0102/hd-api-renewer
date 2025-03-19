@@ -53,7 +53,7 @@ app.use('/subscription', subscriptionRouter);
 app.use('/translate', translateRouter);
 app.use('/view', viewRouter);
 app.use('/vod', vodRouter);
-app.use('/webzine', webzineRouter);
+app.use('/webzines', webzineRouter);
 
 // 서버 실행
 const port = process.env.PORT || 8080;
