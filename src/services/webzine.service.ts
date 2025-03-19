@@ -21,42 +21,13 @@ export class WebzineService {
     }
 
     async findAll() {
-        console.log('findAll called');
-        try {
-            const db = mongoose.connection;
-            const collections = await db.db.listCollections().toArray();
-            console.log(
-                'Available collections:',
-                collections.map((c) => c.name)
-            );
-
-            const count = await WebzineModel.countDocuments();
-            console.log('Total webzines count:', count);
-
-            // 컬렉션에 직접 접근해서 확인
-            const webzines = await db.db
-                .collection('webzines')
-                .find()
-                .toArray();
-            console.log(
-                'Direct collection access found:',
-                webzines.length,
-                'documents'
-            );
-
-            // Mongoose 모델을 통한 조회
-            const modelWebzines = await WebzineModel.find().lean();
-            console.log(
-                'Model query found:',
-                modelWebzines.length,
-                'documents'
-            );
-
-            return modelWebzines;
-        } catch (error) {
-            console.error('Error in findAll:', error);
-            throw error;
-        }
+        // Mongoose aggregate
+        console.log('findAll');
+        return WebzineModel.aggregate([
+            // 파이프라인 로직
+            { $sort: { createdAt: -1 } },
+            { $project: { articles: 0 } },
+        ]);
     }
 
     async findOne(id: string) {
