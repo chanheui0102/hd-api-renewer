@@ -1,7 +1,7 @@
 // src/services/webzine.service.ts
 import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
-import * as moment from 'moment';
+import moment from 'moment';
 import { WebzineModel } from '../models/webzine.model';
 import { FileService } from './file.service';
 import {

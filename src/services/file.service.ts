@@ -3,7 +3,7 @@ import AWS from 'aws-sdk';
 import { UserModel } from '../models/user.model';
 import { SubscriberModel } from '../models/subscriber.model';
 import * as xlsx from 'xlsx';
-import * as moment from 'moment';
+import moment from 'moment';
 import { Types } from 'mongoose';
 
 type Folder = 'thumbnail' | 'pdf';
