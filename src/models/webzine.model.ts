@@ -54,4 +54,8 @@ const WebzineSchema = new Schema<WebzineDocument>(
 WebzineSchema.plugin(mongoosePaginate);
 
 // Model 생성
-export const WebzineModel = model<WebzineDocument>('Webzine', WebzineSchema);
+export const WebzineModel = model<WebzineDocument>(
+    'Webzines',
+    WebzineSchema,
+    'webzines' // 실제 컬렉션 이름 명시적 지정
+);

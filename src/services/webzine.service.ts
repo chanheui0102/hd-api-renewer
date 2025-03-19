@@ -21,15 +21,46 @@ export class WebzineService {
     }
 
     async findAll() {
-        // Mongoose aggregate
-        return WebzineModel.aggregate([
-            // 파이프라인 로직
-            { $sort: { createdAt: -1 } },
-            { $project: { articles: 0 } },
-        ]);
+        console.log('findAll called');
+        try {
+            const db = mongoose.connection;
+            const collections = await db.db.listCollections().toArray();
+            console.log(
+                'Available collections:',
+                collections.map((c) => c.name)
+            );
+
+            const count = await WebzineModel.countDocuments();
+            console.log('Total webzines count:', count);
+
+            // 컬렉션에 직접 접근해서 확인
+            const webzines = await db.db
+                .collection('webzines')
+                .find()
+                .toArray();
+            console.log(
+                'Direct collection access found:',
+                webzines.length,
+                'documents'
+            );
+
+            // Mongoose 모델을 통한 조회
+            const modelWebzines = await WebzineModel.find().lean();
+            console.log(
+                'Model query found:',
+                modelWebzines.length,
+                'documents'
+            );
+
+            return modelWebzines;
+        } catch (error) {
+            console.error('Error in findAll:', error);
+            throw error;
+        }
     }
 
     async findOne(id: string) {
+        console.log('findOne');
         const objectId = new mongoose.Types.ObjectId(id);
         const [webzine] = await WebzineModel.aggregate([
             { $match: { _id: objectId } },
@@ -44,6 +75,7 @@ export class WebzineService {
     }
 
     async create(dto: CreateWebzineDto, files: CreateWebzineFileDto) {
+        console.log('create');
         const now = moment().toDate();
         // 파일 이름 변환
         files.Pdf.forEach((f) => {
@@ -79,6 +111,7 @@ export class WebzineService {
     }
 
     private async upload(publishedDate: string, files: CreateWebzineFileDto) {
+        console.log('upload');
         // 예시: fileService.uploadArticle() 사용
         for (const pdf of files.Pdf) {
             await this.fileService.uploadArticle(
@@ -102,6 +135,7 @@ export class WebzineService {
     }
 
     async update(id: string, dto: UpdateWebzineDto) {
+        console.log('update');
         const webzine = await WebzineModel.findById(id);
         if (!webzine) throw new Error('NO_WEBZINE');
         if (dto.publishedDate) {
@@ -131,6 +165,7 @@ export class WebzineService {
         dto: UpdateWebzineFileDto,
         file: Express.Multer.File
     ) {
+        console.log('updateThumbnail');
         const webzine = await WebzineModel.findById(id);
         if (!webzine) throw new Error('NO_WEBZINE');
         file.originalname = `${uuidv4()}.${
@@ -160,6 +195,7 @@ export class WebzineService {
     }
 
     async delete(id: string) {
+        console.log('delete');
         const webzine = await WebzineModel.findByIdAndRemove(id);
         if (!webzine) return { deletedCount: 0 };
         // S3 폴더 삭제
