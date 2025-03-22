@@ -77,6 +77,7 @@ export class ArticleController {
     }
 
     public async findByCategory(req: Request, res: Response) {
+        console.log('findByCategory');
         try {
             const { category } = req.params;
             const result = await this.articleService.findByCategory(category);
