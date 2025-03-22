@@ -19,12 +19,25 @@ export function categoryValidationMiddleware(
     res: Response,
     next: NextFunction
 ): void {
+    console.log('categoryValidationMiddleware');
     const { category } = req.params;
     if (!category) {
         res.status(400).json({ message: 'Category is required' });
         return;
     }
-    if (!['Header', 'Interview', 'News'].includes(category)) {
+    if (
+        ![
+            'Event',
+            'Local News',
+            'Hyundai Heritage',
+            'Life Style',
+            'Brand H-Tech',
+            'Training',
+            'WRC',
+            'About Hyundai',
+            'Regional HQ History',
+        ].includes(category)
+    ) {
         res.status(400).json({ message: 'Invalid category' });
         return;
     }
