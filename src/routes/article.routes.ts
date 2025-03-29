@@ -5,7 +5,7 @@ import { ArticleController } from '../controllers/article.controller';
 import { articleFilesMiddleware } from '../middlewares/article-files.middleware';
 import { titleValidationMiddleware } from '../middlewares/title-validation.middleware';
 import { categoryValidationMiddleware } from '../middlewares/category.middleware';
-// import { jwtAuthMiddleware, roleCheckMiddleware } from '../middlewares/auth'; // 예시
+import { checkPasswordMiddleware } from '../middlewares/checkPasswordMiddleware';
 
 const router = Router();
 const ctrl = new ArticleController();
@@ -26,6 +26,7 @@ router.post(
     '/:webzineId',
     // jwtAuthMiddleware, roleCheckMiddleware(['admin']),
     upload.fields([{ name: 'Thumbnail', maxCount: 2 }]),
+    checkPasswordMiddleware,
     articleFilesMiddleware,
     ctrl.upload.bind(ctrl)
 );
