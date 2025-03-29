@@ -42,7 +42,7 @@ app.get('/', (req, res) => {
 
 app.use('/user', userRouter);
 app.use('/admin', adminRouter);
-app.use('/article', articleRouter);
+app.use('/articles', articleRouter);
 app.use('/auth', authRouter);
 app.use('/comment', commentRouter);
 app.use('/file', fileRouter);
