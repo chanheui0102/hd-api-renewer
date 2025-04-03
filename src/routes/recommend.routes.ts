@@ -13,7 +13,7 @@ router.post(
     '/article',
     recommendMiddleware, // limit check
     // maybe user check (JWT?), role check, etc.
-    recommendArticleMiddleware, // possibleRecommendArticle
+    // recommendArticleMiddleware, // possibleRecommendArticle
     ctrl.recommendArticle.bind(ctrl)
 );
 
@@ -22,7 +22,7 @@ router.post(
     '/comment',
     recommendMiddleware,
     // maybe user check (JWT?), etc.
-    recommendCommentMiddleware,
+    // recommendCommentMiddleware,
     ctrl.recommendComment.bind(ctrl)
 );
 
