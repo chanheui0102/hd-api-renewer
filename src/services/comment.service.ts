@@ -70,6 +70,8 @@ export class CommentService {
 
     public async validatePassword(dto: ValidateCommentPasswordDto) {
         const { articleId, commentId, password } = dto;
+        console.log('입력된 데이터:', { articleId, commentId, password });
+
         const pipeline = [
             {
                 $match: {
@@ -101,10 +103,7 @@ export class CommentService {
                             input: '$comments',
                             as: 'c',
                             cond: {
-                                $eq: [
-                                    '$$c._id',
-                                    new mongoose.Types.ObjectId(commentId),
-                                ],
+                                $eq: ['$$c._id', commentId], // ObjectId 변환 제거
                             },
                         },
                     },
@@ -113,10 +112,18 @@ export class CommentService {
             { $unwind: '$comments' },
             { $replaceRoot: { newRoot: '$comments' } },
         ];
+
         const docs = await WebzineModel.aggregate(pipeline);
+        console.log('조회된 댓글:', docs);
+
         if (!docs.length) return false;
 
         const comment = docs[0];
+        console.log('비밀번호 비교:', {
+            입력비밀번호: password,
+            저장된해시: comment.password,
+        });
+
         return await bcrypt.compare(password, comment.password);
     }
 
