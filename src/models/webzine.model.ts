@@ -93,12 +93,17 @@ const ThumbnailSchema = new mongoose.Schema<Thumbnail>({
 // ---------------------
 // commentSchema
 // ---------------------
-const CommentSchema = new mongoose.Schema<Comment>({
-    _id: mongoose.Schema.Types.ObjectId, // _id 필드 명시적 정의
+const CommentSchema = new mongoose.Schema({
+    _id: mongoose.Schema.Types.ObjectId,
     content: String,
     nickname: String,
     password: String,
-    recommends: [String],
+    recommends: [
+        {
+            ip: String,
+            createdAt: Date,
+        },
+    ],
     visible: Boolean,
     createdAt: Date,
     updatedAt: Date,
@@ -107,7 +112,7 @@ const CommentSchema = new mongoose.Schema<Comment>({
 // ---------------------
 // articleSchema
 // ---------------------
-const ArticleSchema = new mongoose.Schema<Article>({
+const ArticleSchema = new mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     webzineId: String,
     title: {
@@ -129,8 +134,13 @@ const ArticleSchema = new mongoose.Schema<Article>({
             createdAt: Date,
         },
     ],
-    recommends: [String],
-    comments: [CommentSchema], // CommentSchema 사용
+    recommends: [
+        {
+            ip: String,
+            createdAt: Date,
+        },
+    ],
+    comments: [CommentSchema],
     beginPage: Number,
     endPage: Number,
     createdAt: Date,
