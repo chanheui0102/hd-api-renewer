@@ -103,7 +103,10 @@ export class CommentService {
                             input: '$comments',
                             as: 'c',
                             cond: {
-                                $eq: ['$$c._id', commentId], // ObjectId 변환 제거
+                                $eq: [
+                                    '$$c._id',
+                                    new mongoose.Types.ObjectId(commentId), // ObjectId로 변환
+                                ],
                             },
                         },
                     },
@@ -135,7 +138,7 @@ export class CommentService {
 
         // sub-doc
         const newComment = {
-            _id: newId.toString(),
+            _id: new mongoose.Types.ObjectId(), // toString() 제거하고 ObjectId로 저장
             content,
             nickname,
             password: bcrypt.hashSync(password, salt),
@@ -165,24 +168,50 @@ export class CommentService {
 
     public async update(dto: UpdateCommentDto) {
         const { articleId, commentId, content, nickname } = dto;
-        const now = moment().toDate();
-        return WebzineModel.updateOne(
-            { 'articles._id': new mongoose.Types.ObjectId(articleId) },
-            {
-                $set: {
-                    'articles.$[article].comments.$[comment].updatedAt': now,
-                    'articles.$[article].comments.$[comment].content': content,
-                    'articles.$[article].comments.$[comment].nickname':
-                        nickname,
+        try {
+            console.log('[Step 1] 받은 인자:', {
+                articleId,
+                commentId,
+                content,
+                nickname,
+            });
+
+            const now = moment().toDate();
+
+            const result = await WebzineModel.updateOne(
+                { 'articles._id': new mongoose.Types.ObjectId(articleId) },
+                {
+                    $set: {
+                        'articles.$[article].comments.$[comment].updatedAt':
+                            now,
+                        'articles.$[article].comments.$[comment].content':
+                            content,
+                        'articles.$[article].comments.$[comment].nickname':
+                            nickname,
+                    },
                 },
-            },
-            {
-                arrayFilters: [
-                    { 'article._id': new mongoose.Types.ObjectId(articleId) },
-                    { 'comment._id': new mongoose.Types.ObjectId(commentId) },
-                ],
-            }
-        );
+                {
+                    arrayFilters: [
+                        {
+                            'article._id': new mongoose.Types.ObjectId(
+                                articleId
+                            ),
+                        },
+                        {
+                            'comment._id': new mongoose.Types.ObjectId(
+                                commentId
+                            ),
+                        },
+                    ],
+                }
+            );
+
+            console.log('[Step 2] 업데이트 결과:', result);
+            return result;
+        } catch (error) {
+            console.error('[에러 발생]', error);
+            throw error;
+        }
     }
 
     public async delete(dto: DeleteCommentDto) {
