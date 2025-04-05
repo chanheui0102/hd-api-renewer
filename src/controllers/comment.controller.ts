@@ -46,7 +46,8 @@ export class CommentController {
             const result = await this.commentService.update(dto);
             return res.json(result);
         } catch (err) {
-            return res.status(403).json({ error: err });
+            console.log('err', err);
+            return res.status(500).json({ error: err });
         }
     }
 
@@ -56,7 +57,8 @@ export class CommentController {
             const result = await this.commentService.delete(dto);
             return res.json(result);
         } catch (err) {
-            return res.status(403).json({ error: err });
+            console.log('err', err);
+            return res.status(500).json({ error: err });
         }
     }
 }
