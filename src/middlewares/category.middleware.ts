@@ -12,6 +12,10 @@ const ParamCategories = [
     'WRC',
     'About Hyundai',
     'Regional HQ History',
+    'Brand',
+    'Challenges are Opportunities',
+    'Culture',
+    'CSR',
 ];
 
 export function categoryValidationMiddleware(
@@ -36,6 +40,10 @@ export function categoryValidationMiddleware(
             'WRC',
             'About Hyundai',
             'Regional HQ History',
+            'Brand',
+            'Challenges are Opportunities',
+            'Culture',
+            'CSR',
         ].includes(category)
     ) {
         res.status(400).json({ message: 'Invalid category' });
