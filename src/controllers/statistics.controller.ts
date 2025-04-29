@@ -55,8 +55,20 @@ export class StatisticsController {
     );
 
     public findCountBymonth = asyncHandler(async (req, res) => {
-        const dto = (req as any).monthRange;
-        res.json(await this.service.findCountBymonth(dto));
+        try {
+            const dto = (req as any).calendar;
+            if (!dto) {
+                throw new Error('Calendar data is required');
+            }
+            const result = await this.service.findCountBymonth(dto);
+            res.json(result);
+        } catch (err) {
+            console.error('findCountBymonth error:', err);
+            res.status(500).json({
+                message: 'Internal server error',
+                error: err instanceof Error ? err.message : String(err),
+            });
+        }
     });
 
     public findCountByday = asyncHandler(async (req, res) => {

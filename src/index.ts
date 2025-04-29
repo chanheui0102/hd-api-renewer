@@ -53,7 +53,7 @@ app.use('/file', fileRouter);
 app.use('/newsletter', newsletterRouter);
 app.use('/recommend', recommendRouter);
 app.use('/statistics', statisticRouter);
-app.use('/subscription', subscriptionRouter);
+app.use('/subscriber', subscriptionRouter);
 app.use('/translate', translateRouter);
 app.use('/view', viewRouter);
 app.use('/vod', vodRouter);
