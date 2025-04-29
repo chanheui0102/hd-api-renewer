@@ -3,6 +3,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import passport from 'passport';
+import './strategies/local.strategy';
 
 import connectDB from './config/db';
 import { initCache } from './config/cache';
@@ -30,6 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(cors());
+app.use(passport.initialize());
 
 // MongoDB & Redis 연결
 connectDB();

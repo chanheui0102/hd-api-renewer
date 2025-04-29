@@ -18,6 +18,7 @@ export class AuthController {
     }
 
     public async login(req: RequestWithUser, res: Response) {
+        console.log('login', req.user);
         try {
             const user = req.user;
             if (!user) {

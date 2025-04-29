@@ -1,14 +1,10 @@
 // src/strategies/local.strategy.ts
-import passportLocal from 'passport-local';
 import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import { UserModel } from '../models/user.model';
 import bcrypt from 'bcrypt';
-import { AuthService } from '../services/auth.service';
-
-const LocalStrategy = passportLocal.Strategy;
-const authService = new AuthService();
 
 passport.use(
-    'local',
     new LocalStrategy(
         {
             usernameField: 'email',
@@ -16,24 +12,19 @@ passport.use(
         },
         async (email, password, done) => {
             try {
-                const user = await authService.validateUser(
-                    email.toLowerCase(),
-                    password
-                );
+                const user = await UserModel.findOne({ email });
                 if (!user) {
-                    return done(null, false, {
-                        message: 'Invalid credentials',
-                    });
+                    return done(null, false, { message: 'User not found' });
                 }
-                // Return user object
-                return done(null, {
-                    id: user._id.toString(),
-                    email: user.email,
-                    role: user.role,
-                    status: user.status,
-                });
+
+                const isValid = await bcrypt.compare(password, user.password);
+                if (!isValid) {
+                    return done(null, false, { message: 'Invalid password' });
+                }
+
+                return done(null, user);
             } catch (err) {
-                return done(err, false);
+                return done(err);
             }
         }
     )

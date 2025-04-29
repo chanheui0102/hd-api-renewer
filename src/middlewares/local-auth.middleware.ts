@@ -15,15 +15,22 @@ export function localAuthMiddleware(
     req: RequestWithUser,
     res: Response,
     next: NextFunction
-) {
-    passport.authenticate('local', (err, user, info) => {
-        if (err) return next(err);
+): void {
+    passport.authenticate('local', { session: false }, (err, user, info) => {
+        if (err) {
+            return res.status(500).json({ message: err.message });
+        }
         if (!user) {
             return res
                 .status(401)
                 .json({ message: info?.message || 'Unauthorized' });
         }
-        req.user = user;
+        req.user = {
+            id: user._id.toString(),
+            email: user.email,
+            role: user.role,
+            status: user.status,
+        };
         next();
     })(req, res, next);
 }
