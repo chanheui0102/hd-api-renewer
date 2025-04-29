@@ -60,8 +60,18 @@ export class StatisticsController {
     });
 
     public findCountByday = asyncHandler(async (req, res) => {
-        const dto = (req as any).calendar;
-        res.json(await this.service.findCountByday(dto));
+        try {
+            const dto = (req as any).calendar;
+            console.log('findCountByday dto:', dto);
+            const result = await this.service.findCountByday(dto);
+            res.json(result);
+        } catch (err) {
+            console.error('findCountByday error:', err);
+            res.status(500).json({
+                message: 'Internal server error',
+                error: err instanceof Error ? err.message : String(err),
+            });
+        }
     });
 
     public findCountByhour = asyncHandler(async (req, res) => {

@@ -290,85 +290,90 @@ export class StatisticsService {
     /* 3. USERS – 일별(create / subscribe / visitors)                     */
     /* ------------------------------------------------------------------ */
     public async findCountByday(dto: { begin: Date; end: Date }) {
-        const { begin, end } = dto;
+        try {
+            const { begin, end } = dto;
+            console.log('Service findCountByday:', { begin, end }); // 로그 추가
+            // 일 범위 배열 생성
+            const datesInRange: string[] = [];
+            const currentDate = moment(begin).clone();
+            const endDateM = moment(end).clone();
+            while (currentDate.isSameOrBefore(endDateM)) {
+                datesInRange.push(currentDate.format('YYYY-MM-DD'));
+                currentDate.add(1, 'day');
+            }
+            datesInRange.pop(); // end 당일 제외
 
-        // 일 범위 배열 생성
-        const datesInRange: string[] = [];
-        const currentDate = moment(begin).clone();
-        const endDateM = moment(end).clone();
-        while (currentDate.isSameOrBefore(endDateM)) {
-            datesInRange.push(currentDate.format('YYYY-MM-DD'));
-            currentDate.add(1, 'day');
+            // 초기 맵
+            const createMap: Record<string, number> = {};
+            const subscribeMap: Record<string, number> = {};
+            const visitorMap: Record<string, number> = {};
+            datesInRange.forEach((d) => {
+                createMap[d] = 0;
+                subscribeMap[d] = 0;
+                visitorMap[d] = 0;
+            });
+
+            // createUsers 집계
+            const createUsers = await UserModel.aggregate([
+                { $match: { createdAt: { $gte: begin, $lte: end } } },
+                {
+                    $group: {
+                        _id: {
+                            date: {
+                                $dateToString: {
+                                    format: '%Y-%m-%d',
+                                    date: '$createdAt',
+                                },
+                            },
+                        },
+                        count: { $sum: 1 },
+                    },
+                },
+            ]);
+            createUsers.forEach((row) => (createMap[row._id.date] = row.count));
+
+            // subscribeUsers 집계
+            const subscribeUsers = await UserModel.aggregate([
+                { $match: { subscribedAt: { $gte: begin, $lte: end } } },
+                {
+                    $group: {
+                        _id: {
+                            date: {
+                                $dateToString: {
+                                    format: '%Y-%m-%d',
+                                    date: '$subscribedAt',
+                                },
+                            },
+                        },
+                        count: { $sum: 1 },
+                    },
+                },
+            ]);
+            subscribeUsers.forEach(
+                (row) => (subscribeMap[row._id.date] = row.count)
+            );
+
+            // visitors (GA)
+            const visitors = await this.gaService.getDailyVisitors(begin, end);
+            visitors.forEach((v) => (visitorMap[v.date] = v.count));
+
+            return {
+                createUsers: Object.entries(createMap).map(([date, count]) => ({
+                    date,
+                    count,
+                })),
+                subscribeUsers: Object.entries(subscribeMap).map(
+                    ([date, count]) => ({ date, count })
+                ),
+                visitors: Object.entries(visitorMap).map(([date, count]) => ({
+                    date,
+                    count,
+                })),
+            };
+        } catch (err) {
+            console.error('Service error:', err); // 에러 로그 추가
+            throw err;
         }
-        datesInRange.pop(); // end 당일 제외
-
-        // 초기 맵
-        const createMap: Record<string, number> = {};
-        const subscribeMap: Record<string, number> = {};
-        const visitorMap: Record<string, number> = {};
-        datesInRange.forEach((d) => {
-            createMap[d] = 0;
-            subscribeMap[d] = 0;
-            visitorMap[d] = 0;
-        });
-
-        // createUsers 집계
-        const createUsers = await UserModel.aggregate([
-            { $match: { createdAt: { $gte: begin, $lte: end } } },
-            {
-                $group: {
-                    _id: {
-                        date: {
-                            $dateToString: {
-                                format: '%Y-%m-%d',
-                                date: '$createdAt',
-                            },
-                        },
-                    },
-                    count: { $sum: 1 },
-                },
-            },
-        ]);
-        createUsers.forEach((row) => (createMap[row._id.date] = row.count));
-
-        // subscribeUsers 집계
-        const subscribeUsers = await UserModel.aggregate([
-            { $match: { subscribedAt: { $gte: begin, $lte: end } } },
-            {
-                $group: {
-                    _id: {
-                        date: {
-                            $dateToString: {
-                                format: '%Y-%m-%d',
-                                date: '$subscribedAt',
-                            },
-                        },
-                    },
-                    count: { $sum: 1 },
-                },
-            },
-        ]);
-        subscribeUsers.forEach(
-            (row) => (subscribeMap[row._id.date] = row.count)
-        );
-
-        // visitors (GA)
-        const visitors = await this.gaService.getDailyVisitors(begin, end);
-        visitors.forEach((v) => (visitorMap[v.date] = v.count));
-
-        return {
-            createUsers: Object.entries(createMap).map(([date, count]) => ({
-                date,
-                count,
-            })),
-            subscribeUsers: Object.entries(subscribeMap).map(
-                ([date, count]) => ({ date, count })
-            ),
-            visitors: Object.entries(visitorMap).map(([date, count]) => ({
-                date,
-                count,
-            })),
-        };
     }
 
     /* ------------------------------------------------------------------ */

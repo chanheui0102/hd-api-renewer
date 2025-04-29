@@ -44,7 +44,7 @@ app.get('/', (req, res) => {
     res.send('Hello hd-api-renewer');
 });
 
-app.use('/user', userRouter);
+app.use('/users', userRouter);
 app.use('/admin', adminRouter);
 app.use('/article', articleRouter);
 app.use('/auth', authRouter);

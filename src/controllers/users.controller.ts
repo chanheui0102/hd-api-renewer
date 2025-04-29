@@ -1,6 +1,7 @@
 // src/controllers/users.controller.ts
 import { Request, Response } from 'express';
 import { UsersService } from '../services/user.service';
+import asyncHandler from 'express-async-handler';
 
 interface RequestWithUser extends Request {
     user?: { id: string };
@@ -109,6 +110,18 @@ export class UsersController {
             return res.status(400).json({ message: 'Failed', error: err });
         }
     }
+
+    public getMe = asyncHandler(
+        async (req: RequestWithUser, res: Response): Promise<void> => {
+            const user = req.user;
+            if (!user) {
+                res.status(401).json({ message: 'Unauthorized' });
+                return;
+            }
+            const result = await this.usersService.findById(user.id);
+            res.json(result);
+        }
+    );
 
     // etc... (updateByAdmin, changeAdminPassword, resetPassword, isExist ...)
 }

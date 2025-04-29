@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { UsersController } from '../controllers/users.controller';
 import { findUserValidation } from '../middlewares/find-user.middleware';
+import { jwtAuthMiddleware } from '../middlewares/jwt-auth.middleware';
 // import { jwtAuthMiddleware } from '../middlewares/jwtAuth'; // custom or passport
 
 const router = Router();
@@ -17,11 +18,7 @@ router.get(
 );
 
 // GET /users/me
-router.get(
-    '/me',
-    // jwtAuthMiddleware,
-    usersCtrl.findMe.bind(usersCtrl)
-);
+router.get('/me', jwtAuthMiddleware, usersCtrl.findMe.bind(usersCtrl));
 
 // PATCH /users
 router.patch(
