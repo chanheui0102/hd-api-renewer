@@ -5,6 +5,7 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import passport from 'passport';
 import './strategies/local.strategy';
+import './strategies/jwt.strategy';
 
 import connectDB from './config/db';
 import { initCache } from './config/cache';
@@ -51,7 +52,7 @@ app.use('/comment', commentRouter);
 app.use('/file', fileRouter);
 app.use('/newsletter', newsletterRouter);
 app.use('/recommend', recommendRouter);
-app.use('/statistic', statisticRouter);
+app.use('/statistics', statisticRouter);
 app.use('/subscription', subscriptionRouter);
 app.use('/translate', translateRouter);
 app.use('/view', viewRouter);
