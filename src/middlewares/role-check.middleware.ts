@@ -11,12 +11,15 @@ interface RequestWithUser extends Request {
 }
 
 export function roleCheckMiddleware(allowedRoles: string[]) {
-    return (req: RequestWithUser, res: Response, next: NextFunction) => {
+    return async (
+        req: RequestWithUser,
+        res: Response,
+        next: NextFunction
+    ): Promise<void> => {
         const user = req.user; // passport-jwt 등에서 세팅
         if (!user || !allowedRoles.includes(user.role)) {
-            return res
-                .status(403)
-                .json({ message: 'Forbidden: Insufficient role' });
+            res.status(403).json({ message: 'Forbidden: Insufficient role' });
+            return;
         }
         next();
     };
