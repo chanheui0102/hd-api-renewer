@@ -3,6 +3,9 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import passport from 'passport';
+import './strategies/local.strategy';
+import './strategies/jwt.strategy';
 
 import connectDB from './config/db';
 import { initCache } from './config/cache';
@@ -30,6 +33,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(cors());
+app.use(passport.initialize());
 
 // MongoDB & Redis 연결
 connectDB();
@@ -40,7 +44,7 @@ app.get('/', (req, res) => {
     res.send('Hello hd-api-renewer');
 });
 
-app.use('/user', userRouter);
+app.use('/users', userRouter);
 app.use('/admin', adminRouter);
 app.use('/article', articleRouter);
 app.use('/auth', authRouter);
@@ -48,8 +52,8 @@ app.use('/comment', commentRouter);
 app.use('/file', fileRouter);
 app.use('/newsletter', newsletterRouter);
 app.use('/recommend', recommendRouter);
-app.use('/statistic', statisticRouter);
-app.use('/subscription', subscriptionRouter);
+app.use('/statistics', statisticRouter);
+app.use('/subscriber', subscriptionRouter);
 app.use('/translate', translateRouter);
 app.use('/view', viewRouter);
 app.use('/vod', vodRouter);

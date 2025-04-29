@@ -1,22 +1,32 @@
 // src/strategies/jwt.strategy.ts
-import passportJwt from 'passport-jwt';
 import passport from 'passport';
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import { UserModel } from '../models/user.model';
+import dotenv from 'dotenv';
 
-const JwtStrategy = passportJwt.Strategy;
-const ExtractJwt = passportJwt.ExtractJwt;
-
-const JWT_SECRET = process.env.JWT_SECRET || 'secretKey';
+dotenv.config();
 
 passport.use(
-    'jwt',
     new JwtStrategy(
         {
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            secretOrKey: JWT_SECRET,
+            secretOrKey: process.env.JWT_SECRET,
         },
-        (payload, done) => {
-            // payload: { id, email, role, status, iat, exp }
-            return done(null, payload); // req.user = payload
+        async (payload, done) => {
+            try {
+                const user = await UserModel.findById(payload.id);
+                if (!user) {
+                    return done(null, false);
+                }
+                return done(null, {
+                    id: user._id.toString(),
+                    email: user.email,
+                    role: user.role,
+                    status: user.status,
+                });
+            } catch (err) {
+                return done(err, false);
+            }
         }
     )
 );
