@@ -1,5 +1,5 @@
 // src/middlewares/jwt-auth.middleware.ts
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import passport from 'passport';
 import jwt from 'jsonwebtoken';
 
@@ -7,52 +7,62 @@ import jwt from 'jsonwebtoken';
 const publicRoutes = ['/auth/login', '/auth/refresh'];
 
 interface RequestWithUser extends Request {
-    user?: {
-        id: string;
-        email: string;
-        role: string;
-        status: string;
-        iat?: number;
-        exp?: number;
-    };
+    user?: JwtPayload;
 }
 
-export const jwtAuthMiddleware = (
+interface JwtPayload {
+    id: string;
+    email: string;
+    role: string;
+    status: string;
+}
+
+export const jwtAuthMiddleware: RequestHandler = async (
     req: Request,
     res: Response,
     next: NextFunction
 ) => {
+    console.log('\n=== JWT Auth Check ===');
+    console.log('Path:', req.path);
+    console.log('Method:', req.method);
+
     try {
-        // Authorization 헤더에서 토큰 추출 방식 개선
         const authHeader = req.headers.authorization;
-        console.log('Auth Header:', authHeader); // 디버깅용
+        console.log(
+            'Auth Header:',
+            authHeader ? 'Bearer ...' + authHeader.slice(-10) : 'none'
+        );
 
         if (!authHeader) {
-            throw new Error('No authorization header');
+            console.log('❌ No auth header');
+            res.status(401).json({ message: 'No authorization header' });
+            return next();
         }
 
-        // Bearer 토큰 형식 처리
         const token = authHeader.startsWith('Bearer ')
             ? authHeader.substring(7)
             : authHeader;
 
-        if (!token) {
-            throw new Error('No token provided');
+        try {
+            const decoded = jwt.verify(
+                token,
+                process.env.JWT_SECRET
+            ) as JwtPayload;
+            console.log('✅ Token verified:', {
+                id: decoded.id,
+                email: decoded.email,
+                role: decoded.role,
+            });
+            req.user = decoded;
+            return next();
+        } catch (verifyError) {
+            console.log('❌ Token verification failed:', verifyError.message);
+            res.status(401).json({ message: 'Token verification failed' });
+            return next();
         }
-
-        // 토큰 검증
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET || 'secretKey'
-        );
-        req.user = decoded;
-
-        next();
     } catch (error) {
-        console.error('JWT Auth Error:', error);
-        res.status(401).json({
-            message: 'Unauthorized',
-            error: error.message,
-        });
+        console.log('❌ JWT middleware error:', error.message);
+        res.status(401).json({ message: error.message });
+        return next();
     }
 };
