@@ -8,19 +8,19 @@ import { GrantPermissionDto } from '../dtos/admin/grant-permission.dto';
 import { GrantAdminDto } from '../dtos/admin/grant-admin.dto';
 
 export class AdminService {
-    private readonly adminKey = process.env.ADMIN_KEY || 'default-admin-key';
+    private encrypted: string;
 
     constructor() {
-        // Nest: readFileSync('src/keys/admin.key', 'utf8')
-        // this.encrypted = readFileSync('src/keys/admin.key', {
-        //     encoding: 'utf8',
-        // }).trim();
+        // 파일에서 암호화된 admin key를 읽어옴
+        this.encrypted = readFileSync('src/keys/admin.key', {
+            encoding: 'utf8',
+        }).trim();
     }
 
     public async unLock(unencrypted: string): Promise<boolean> {
-        // bcrypt.compare
-        const result = await bcrypt.compare(unencrypted, this.adminKey);
-        return result; // true or false
+        // bcrypt로 비교
+        const result = await bcrypt.compare(unencrypted, this.encrypted);
+        return result;
     }
 
     public async grantPermission(dto: GrantPermissionDto) {
