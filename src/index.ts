@@ -33,7 +33,7 @@ app.set('trust proxy', true);
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.json());
-// app.use(cors());
+app.use(cors());
 // app.use(
 //     cors({
 //         origin: [
@@ -47,30 +47,30 @@ app.use(express.json());
 //         allowedHeaders: ['Content-Type', 'Authorization'],
 //     })
 // );
-const whitelist = [
-    'https://analysis.hyundai-newsletter.com',
-    'https://hyundai-newsletter.com',
-    'https://api.hyundai-newsletter.com',
-    'http://localhost:3000', // 개발 환경 추가
-    'http://localhost:8080', // 개발 환경 추가
-];
+// const whitelist = [
+//     'https://analysis.hyundai-newsletter.com',
+//     'https://hyundai-newsletter.com',
+//     'https://api.hyundai-newsletter.com',
+//     'http://localhost:3000', // 개발 환경 추가
+//     'http://localhost:8080', // 개발 환경 추가
+// ];
 
-app.use(
-    cors({
-        origin: function (origin, callback) {
-            // origin이 없거나 whitelist에 있으면 허용
-            if (!origin || whitelist.indexOf(origin) !== -1) {
-                callback(null, true);
-            } else {
-                console.log('Blocked by CORS:', origin); // 디버깅용
-                callback(new Error('Not allowed by CORS'));
-            }
-        },
-        credentials: true,
-        allowedHeaders: 'Content-Type,Authorization',
-        methods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
-    })
-);
+// app.use(
+//     cors({
+//         origin: function (origin, callback) {
+//             // origin이 없거나 whitelist에 있으면 허용
+//             if (!origin || whitelist.indexOf(origin) !== -1) {
+//                 callback(null, true);
+//             } else {
+//                 console.log('Blocked by CORS:', origin); // 디버깅용
+//                 callback(new Error('Not allowed by CORS'));
+//             }
+//         },
+//         credentials: true,
+//         allowedHeaders: 'Content-Type,Authorization',
+//         methods: 'GET,POST,PUT,DELETE,PATCH,OPTIONS',
+//     })
+// );
 app.use(passport.initialize());
 
 // MongoDB & Redis 연결
