@@ -33,7 +33,18 @@ app.set('trust proxy', true);
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.json());
-app.use(cors());
+app.use(
+    cors({
+        origin: [
+            'https://analysis.hyundai-newsletter.com',
+            'https://hyundai-newsletter.com',
+            // 필요한 다른 도메인들...
+        ],
+        credentials: true,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+    })
+);
 app.use(passport.initialize());
 
 // MongoDB & Redis 연결
