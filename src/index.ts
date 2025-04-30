@@ -28,6 +28,7 @@ import webzineRouter from './routes/webzine.routes';
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', true);
 
 app.use(express.urlencoded({ extended: true }));
 app.use(bodyParser.json());
