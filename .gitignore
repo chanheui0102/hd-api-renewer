@@ -2,3 +2,11 @@ node_modules/
 dist/
 .env
 package-lock.json
+
+# Credentials and secrets
+credentials.json
+**/credentials.json
+*.json
+!package.json
+!tsconfig.json
+!tsconfig.*.json
