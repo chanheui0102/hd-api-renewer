@@ -91,6 +91,9 @@ export class ArticleController {
         try {
             const { id } = req.params;
             const ip = req.ip || req.socket.remoteAddress || '0.0.0.0';
+            console.log(
+                `[ArticleController.findById] Request IP: ${ip}, Article ID: ${id}, X-Forwarded-For: ${req.headers['x-forwarded-for']}, Remote Address: ${req.socket.remoteAddress}`
+            );
             const doc = await this.articleService.findById(ip, id);
             return res.json(doc);
         } catch (err) {

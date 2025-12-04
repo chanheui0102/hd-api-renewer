@@ -122,7 +122,8 @@ export class ArticleService {
     }
 
     public async findById(ip: string, id: string) {
-        await this.viewService.view(ip, id);
+        console.log(`[ArticleService.findById] IP: ${ip}, Article ID: ${id}`);
+        await this.viewService.view(id, ip);
         const pipeline: PipelineStage[] = [
             {
                 $project: {
