@@ -19,11 +19,31 @@ export class GaService {
     constructor() {
         // GA_PROPERTY_ID from .env
         this.propertyId = process.env.GA_PROPERTY_ID || '';
-        // credentials.json 경로 등 설정
-        this.analyticsDataClient = new BetaAnalyticsDataClient({
-            // keyFile: path.join(__dirname, 'credentials.json'),
-            // or "credentials" in some format
-        });
+
+        // Google Analytics 인증 설정
+        const config: any = {};
+
+        // 방법 1: 환경 변수에서 credentials 파일 경로 읽기
+        if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+            config.keyFile = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+        } else if (process.env.GA_CREDENTIALS_PATH) {
+            config.keyFile = process.env.GA_CREDENTIALS_PATH;
+        }
+        // 방법 2: 환경 변수에서 credentials JSON 객체 읽기
+        else if (process.env.GA_CREDENTIALS_JSON) {
+            try {
+                config.credentials = JSON.parse(
+                    process.env.GA_CREDENTIALS_JSON
+                );
+            } catch (err) {
+                console.error('Failed to parse GA_CREDENTIALS_JSON:', err);
+            }
+        }
+        // 방법 3: credentials가 없으면 Application Default Credentials (ADC) 사용
+        // 로컬 개발: gcloud auth application-default login
+        // 프로덕션: GCP 환경에서는 자동으로 인증됨
+
+        this.analyticsDataClient = new BetaAnalyticsDataClient(config);
     }
 
     public async getVisitors(begin: Date, end: Date): Promise<number> {
